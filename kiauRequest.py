@@ -16,7 +16,7 @@ pasw                = ''
 page                = 1
 table               = []
 cookies             = ''
-sessionId 	    = ''
+sessionId 	        = ''
 courseList          = []
 tableCource         = []
 courseTable         = []
@@ -205,7 +205,7 @@ def parsTable(soup):
     for row in rows :
         colsTemp = row.find_all("td")
         cols = list(map(lambda x: x.text , colsTemp))
-        print(cols)
+        # print(cols)
         table.append(cols)
 
 def GetTable():
@@ -299,7 +299,7 @@ def GetReportCard():
     # Get Date
     date = soup.find_all(id='ctl00_term')[0].text + '   عادی'
 
-    print(date)
+    # print(date)
 
     for i in range(100) :
         dateTow = soup.find(id=str('ctl00_ContentPlaceHolder1_dataListTotalkarnameh_ctl0{}_riz_karnameh_Label1'.format(i)))
@@ -307,11 +307,11 @@ def GetReportCard():
             tableRow = dateTow.parent.parent.parent
             rows = tableRow.find_all('tr',{'class':'GridViewRow'})
             rows.extend(tableRow.find_all('tr',{'class':'GridViewAlternatingRow'}))
-            print(rows)
+            # print(rows)
             for row in rows :
                 colsTemp = row.find_all("td")
                 cols = list(map(lambda x: x.text , colsTemp))
-                print(cols)
+                # print(cols)
                 tableCource.append(cols)
             break
 
@@ -328,26 +328,28 @@ def convetToHtmlGrid(dataTable):
 # ----------------------Main------------------------
 def main():
     global cookies, ReportCard, courseTable, user, pasw
-    print(sys.argv)
+    # print(sys.argv)
     
     if len(sys.argv) != 3:
         print('Please enter the correct parameter >>> Example: python kiauRequest.py UserName PassWord')
-        # exit()
-    
+        exit()
     # SetUser Information
     user = sys.argv[1]
     pasw = sys.argv[2]
     
-    # Update Session
-    GetNewSession()
+    try:
+        # Update Session
+        GetNewSession()
 
-    # Get All Row DarsHayeErae Shode
-    courseTable = GetTable()
+        # Get All Row DarsHayeErae Shode
+        courseTable = GetTable()
 
-    # Get ReportCard
-    ReportCard = GetReportCard()
+        # Get ReportCard
+        ReportCard = GetReportCard()
 
-    # Convert data to Grid
-    convetToHtmlGrid(ReportCard)
+        # Convert data to Grid
+        convetToHtmlGrid(ReportCard)
+    except:
+        print('The username or password is incorrect')
 
 if __name__ == '__main__': main()
