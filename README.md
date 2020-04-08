@@ -11,12 +11,6 @@
 - lxml
 - pandas
 - requests
-- csv
-- sys
-- json
-- time
-- re
-- os
 <p>You can install missing dependencies with pip.</p>
 
 # Usage
