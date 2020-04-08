@@ -16,7 +16,7 @@ pasw                = ''
 page                = 1
 table               = []
 cookies             = ''
-sessionId 	        = ''
+sessionId 	    = ''
 courseList          = []
 tableCource         = []
 courseTable         = []
@@ -332,7 +332,7 @@ def main():
     
     if len(sys.argv) != 3:
         print('Please enter the correct parameter >>> Example: python kiauRequest.py UserName PassWord')
-        exit()
+        # exit()
     
     # SetUser Information
     user = sys.argv[1]
