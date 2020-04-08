@@ -16,6 +16,10 @@
 # Usage
 <p>Install the dependencies;</p>
 <p> Open terminal and run python kiauRequest.py username password.</p>
+<p> Export => CourseList.html <p>
+
+# sampel Export
+<img src="http://s10.picofile.com/file/8393417626/Screenshot_2020_04_08_Screenshot.png"/>
 
 # License
 <p>Feel free to use this source code to modify or deploy to your own project.</p>
