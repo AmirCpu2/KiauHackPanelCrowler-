@@ -1,6 +1,6 @@
 # KiauHackPanelCrowler-
 > \>>> git clone https://github.com/AmirCpu2/KiauHackPanelCrowler-.git<br/>
-> \>>> Pakage pip install -r requirements.txt<br/>
+> \>>> pip install -r requirements.txt<br/>
 > \>>> python kiauRequest.py username password
 
 # Overview
