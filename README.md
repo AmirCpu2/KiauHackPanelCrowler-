@@ -4,7 +4,7 @@
 > \>>> python kiauRequest.py username password
 
 # Overview
-<p> The project can help Azad University students receive their weekly schedule when they owe money to the university and their profile is closed.</p>
+<p> The project can help Azad University students receive their weekly schedule when they owe money to the university and their profile is limited.</p>
 
 # Dependencies
 - bs4
