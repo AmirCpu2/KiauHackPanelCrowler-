@@ -1,33 +1,41 @@
 from bs4 import BeautifulSoup
 from lxml import html
+import pandas as pd
 import requests
 import json
 import time
 import csv
+import sys
 import re
+import os
 
 #---------------------InitializeValue--------------------------
-SubjectCorse = 'معماری'
-url = 'http://edu.kiau.ac.ir'
-user = '962097617'
-pasw = '440729300'
-sessionId 	= ''
-captchaCode = []
-sessionIdHistory = []
-page = 1
-table = []
-tableCource = []
+url                 = 'http://edu.kiau.ac.ir'
+user                = ''
+pasw                = ''
+page                = 1
+table               = []
+cookies             = ''
+sessionId 	        = ''
+courseList          = []
+tableCource         = []
+courseTable         = []
+captchaCode         = []
+SubjectCorse        = ''
+sessionIdHistory    = []
+
 payload = {
 "__EVENTTARGET": '' ,
 "__EVENTARGUMENT": '' ,
 "__VIEWSTATE": '' ,
 "__VIEWSTATEGENERATOR": '' ,
 "__EVENTVALIDATION": '' ,
-"txtUserName": user ,
-"txtPassword": pasw ,
+"txtUserName": '' ,
+"txtPassword": '' ,
 "texttasvir": captchaCode ,
 "LoginButton0":"ورود دانشجو"
 }
+
 payloadTable = {
 "ctl00$ScriptManager1": 'ctl00$UpdatePanel1|ctl00$ContentPlaceHolder1$btnSave4' ,
 "ctl00$ContentPlaceHolder1$a1": "RadioButton1",
@@ -44,6 +52,7 @@ payloadTable = {
 }
 
 # --------------------Functions---------------------
+
 def ocr_space_file(filename, overlay=False, api_key='55c76e3c7d88957', language='eng'):
     """ OCR.space API request with local file.
         Python3.5 - not tested on 2.7
@@ -97,7 +106,7 @@ def GetValueById(object,element,id):
 		return object.xpath('//{}[@id="{}"]/@value'.format(element,id))[0]
 	except:
 		return ''
-		
+
 def GetValueByName(object,element,name):
 	try:
 		return object.xpath('//{}[@name="{}"]/@value'.format(element,id))[0]
@@ -105,20 +114,26 @@ def GetValueByName(object,element,name):
 		return ''
 
 def InitializeValue():
-	# Get Value And Settion Temp
-	BasePage = requests.get(url+"/login.aspx")
-	sessionId = BasePage.cookies.get('ASP.NET_SessionId')
-	sessionIdHistory.append(sessionId)
-	tree = html.fromstring(BasePage.content)
-	payload['__VIEWSTATE'] = GetValueById(tree,'input','__VIEWSTATE')
-	payload['__VIEWSTATEGENERATOR'] = GetValueById(tree,'input','__VIEWSTATEGENERATOR')
-	payload['__EVENTTARGET'] = GetValueById(tree,'input','__EVENTTARGET')
-	payload['__EVENTARGUMENT'] = GetValueById(tree,'input','__EVENTARGUMENT')
-	payload['__EVENTVALIDATION'] = GetValueById(tree,'input','__EVENTVALIDATION')
+    global user, pasw
+    # Get Value And Settion Temp
+    BasePage = requests.get(url+"/login.aspx")
+    sessionId = BasePage.cookies.get('ASP.NET_SessionId')
+    sessionIdHistory.append(sessionId)
+    tree = html.fromstring(BasePage.content)
+    payload['__VIEWSTATE'] = GetValueById(tree,'input','__VIEWSTATE')
+    payload['__VIEWSTATEGENERATOR'] = GetValueById(tree,'input','__VIEWSTATEGENERATOR')
+    payload["txtUserName"] = user
+    payload["txtPassword"] = pasw
+    payload['__EVENTTARGET'] = GetValueById(tree,'input','__EVENTTARGET')
+    payload['__EVENTARGUMENT'] = GetValueById(tree,'input','__EVENTARGUMENT')
+    payload['__EVENTVALIDATION'] = GetValueById(tree,'input','__EVENTVALIDATION')
 
 def GetNewSession():
-	InitializeValue()
-	GetNewCapcha()
+    global cookies
+    InitializeValue()
+    GetNewCapcha()
+    cookies = dict({'ASP.NET_SessionId':str(sessionIdHistory[-1])})
+    requests.post(url+"/login.aspx",data=payload,cookies=cookies).cookies
 
 def GetNewCapcha():
 	try:
@@ -164,20 +179,20 @@ def SaveTable (DataTable):
             # Write Row
             try:
                 writer.writerow({
-		fieldnames[0]: row[0],
-		fieldnames[1]: row[1],
-		fieldnames[2]: row[2],
-		fieldnames[3]: row[3],
-		fieldnames[4]: row[4],
-	 	fieldnames[5]: row[5],
-	 	fieldnames[6]: row[6],
-		fieldnames[7]: row[7],
-	 	fieldnames[8]: row[8], 
-		fieldnames[9]: row[9], 
-		fieldnames[10]: row[10],
-		fieldnames[11]: row[11], 
-		fieldnames[12]: row[12], 
-		fieldnames[13]: row[13] })
+                    fieldnames[0]: row[0],
+                    fieldnames[1]: row[1],
+                    fieldnames[2]: row[2],
+                    fieldnames[3]: row[3],
+                    fieldnames[4]: row[4],
+                    fieldnames[5]: row[5],
+                    fieldnames[6]: row[6],
+                    fieldnames[7]: row[7],
+                    fieldnames[8]: row[8], 
+                    fieldnames[9]: row[9], 
+                    fieldnames[10]: row[10],
+                    fieldnames[11]: row[11], 
+                    fieldnames[12]: row[12], 
+                    fieldnames[13]: row[13] })
             except:
                 pass
 
@@ -194,7 +209,12 @@ def parsTable(soup):
         table.append(cols)
 
 def GetTable():
-    global page , payload , payloadTable
+    global page, payload, payloadTable, cookies
+     
+    # check Exist Pandas Table
+    if os.path.exists("PandaDBCorces.csv"):
+        temp = pd.read_csv("PandaDBCorces.csv")
+        return temp.drop(columns = [temp.columns[0]])
 
     # Temp Page List
     lists = requests.post(url+"/list_ara.aspx",data=payload,cookies=cookies)
@@ -237,47 +257,97 @@ def GetTable():
             pass
 
     SaveTable(table)
+    return SetPandas(table)
 
 def SetPandas(dataTable):
-    pass
+    # Head
+    fieldnames = ['CourseId', 'CourseName', 'ClassSection', 'Theoretical', 'PracticalType', 'PracticalTypes',
+                    'Gender', 'ClassGroup', 'Rest', 'timeClass', 'ExamTime', 'DateExam', 'ProfessorName', 'Grouping']
+    
+    # Creat Data Frame
+    pdTable = pd.DataFrame({
+                    fieldnames[0]: list(int(j[0]) for j in dataTable),
+                    fieldnames[1]: list(j[1] for j in dataTable),
+                    fieldnames[2]: list(j[2] for j in dataTable),
+                    fieldnames[3]: list(j[3] for j in dataTable),
+                    fieldnames[4]: list(j[4] for j in dataTable),
+                    fieldnames[5]: list(j[5] for j in dataTable),
+                    fieldnames[6]: list(j[6] for j in dataTable),
+                    fieldnames[7]: list(j[7] for j in dataTable),
+                    fieldnames[8]: list(j[8] for j in dataTable), 
+                    fieldnames[9]: list(j[9] for j in dataTable), 
+                    fieldnames[10]: list(j[10] for j in dataTable),
+                    fieldnames[11]: list(j[11] for j in dataTable), 
+                    fieldnames[12]: list(j[12] for j in dataTable), 
+                    fieldnames[13]: list(j[13] for j in dataTable)
+                    })
+
+    # DataFrame To CSV
+    pdTable.to_csv("PandaDBCorces.csv", sep=",", encoding='utf-8')
+
+    return pdTable
+
+def GetReportCard():
+    global cookies , courseList, courseTable
+    requests.get(url+"/Karnameha.aspx",cookies=cookies)
+    report = requests.get(url+"/totalkarnameh.aspx",cookies=cookies)
+
+    # ctl00_term , ctl00_ContentPlaceHolder1_dataListTotalkarnameh_ctl???_riz_karnameh_Label1
+
+    soup = BeautifulSoup( report.text , 'html.parser' )
+
+    # Get Date
+    date = soup.find_all(id='ctl00_term')[0].text + '   عادی'
+
+    print(date)
+
+    for i in range(100) :
+        dateTow = soup.find(id=str('ctl00_ContentPlaceHolder1_dataListTotalkarnameh_ctl0{}_riz_karnameh_Label1'.format(i)))
+        if dateTow.text == date :
+            tableRow = dateTow.parent.parent.parent
+            rows = tableRow.find_all('tr',{'class':'GridViewRow'})
+            rows.extend(tableRow.find_all('tr',{'class':'GridViewAlternatingRow'}))
+            print(rows)
+            for row in rows :
+                colsTemp = row.find_all("td")
+                cols = list(map(lambda x: x.text , colsTemp))
+                print(cols)
+                tableCource.append(cols)
+            break
+
+    # Get Row Table
+    for row in tableCource: courseList.append(courseTable.where(courseTable['CourseId']==int(row[1])).dropna())
+
+    return courseList
+
+def convetToHtmlGrid(dataTable):
+    html = pd.concat(dataTable).to_html()
+    file = open('CourseList.html','w',encoding='utf-8')
+    file.write(html)
+
 # ----------------------Main------------------------
+def main():
+    global cookies, ReportCard, courseTable, user, pasw
+    print(sys.argv)
+    
+    if len(sys.argv) != 3:
+        print('Please enter the correct parameter >>> Example: python kiauRequest.py UserName PassWord')
+        exit()
+    
+    # SetUser Information
+    user = sys.argv[1]
+    pasw = sys.argv[2]
+    
+    # Update Session
+    GetNewSession()
 
-# Update Session
-GetNewSession()
+    # Get All Row DarsHayeErae Shode
+    courseTable = GetTable()
 
-# Get Main Cookies
-cookies = dict({'ASP.NET_SessionId':str(sessionIdHistory[-1])})
-login = requests.post(url+"/login.aspx",data=payload,cookies=cookies)
+    # Get ReportCard
+    ReportCard = GetReportCard()
 
-# Get All Row DarsHayeErae Shode
-# GetTable()
+    # Convert data to Grid
+    convetToHtmlGrid(ReportCard)
 
-# Get Karname
-requests.get(url+"/Karnameha.aspx",cookies=cookies)
-report = requests.get(url+"/totalkarnameh.aspx",cookies=cookies)
-
-# ctl00_term , ctl00_ContentPlaceHolder1_dataListTotalkarnameh_ctl???_riz_karnameh_Label1
-
-soup = BeautifulSoup( report.text , 'html.parser' )
-
-# Get Date
-date = soup.find_all(id='ctl00_term')[0].text + '   عادی'
-
-print(date)
-
-for i in range(100) :
-    dateTow = soup.find(id=str('ctl00_ContentPlaceHolder1_dataListTotalkarnameh_ctl0{}_riz_karnameh_Label1'.format(i)))
-    if dateTow.text == date :
-        tableRow = dateTow.parent.parent.parent
-        rows = tableRow.find_all('tr',{'class':'GridViewRow'})
-        rows.extend(tableRow.find_all('tr',{'class':'GridViewAlternatingRow'}))
-        print(rows)
-        for row in rows :
-            colsTemp = row.find_all("td")
-            cols = list(map(lambda x: x.text , colsTemp))
-            print(cols)
-            tableCource.append(cols)
-        break
-
-for row in tableCource :
-    print(row[1])
+if __name__ == '__main__': main()
