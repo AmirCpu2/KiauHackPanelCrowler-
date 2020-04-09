@@ -3,7 +3,7 @@
 > \>>> cd KiauHackPanelCrowler-<br/>
 > \>>> pip install -r requirements.txt<br/>
 > \>>> python kiauRequest.py username password
-- Export file : ./CourseList.html
+> out : ./CourseList.html
 
 # Overview
 <p> The project can help Azad University students receive their weekly schedule when they owe money to the university and their profile is limited.</p>
