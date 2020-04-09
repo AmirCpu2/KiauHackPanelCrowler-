@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from lxml import html
 import pandas as pd
+import webbrowser
 import requests
 import json
 import time
@@ -115,7 +116,7 @@ def GetValueByName(object,element,name):
 
 def InitializeValue():
     global user, pasw
-    # Get Value And Settion Temp
+    # Get Value And Session Temp
     BasePage = requests.get(url+"/login.aspx")
     sessionId = BasePage.cookies.get('ASP.NET_SessionId')
     sessionIdHistory.append(sessionId)
@@ -150,7 +151,7 @@ def GetNewCapcha():
 		GetNewCapcha()
 
 def SetPayloadList(object,page):
-	# Get Value And Settion Temp
+	# Get Value And Session Temp
 	tree = html.fromstring(object.content)
 	payloadTable['__VIEWSTATE'] = GetValueById(tree,'input','__VIEWSTATE')
 	payloadTable['__VIEWSTATEGENERATOR'] = GetValueById(tree,'input','__VIEWSTATEGENERATOR')
@@ -339,16 +340,26 @@ def main():
     
     try:
         # Update Session
+        print('Get New Session---->')
         GetNewSession()
+        print("\033[FGet New Session----> Done .")
 
         # Get All Row DarsHayeErae Shode
+        print('Get courseTable---->')
         courseTable = GetTable()
+        print("\033[FGet courseTable----> Done .")
 
         # Get ReportCard
+        print('Get courses---->')
         ReportCard = GetReportCard()
+        print("\033[FGet courses----> Done .")
 
         # Convert data to Grid
         convetToHtmlGrid(ReportCard)
+        print('Save File To: {}'.format(os.path.realpath('CourseList.html')))
+
+        # run File
+        webbrowser.open(os.path.realpath('CourseList.html'),new=2)
     except:
         print('The username or password is incorrect')
 
