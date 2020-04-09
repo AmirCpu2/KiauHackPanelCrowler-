@@ -2,7 +2,7 @@
 > \>>> git clone https://github.com/AmirCpu2/KiauHackPanelCrowler-.git<br/>
 > \>>> cd KiauHackPanelCrowler-<br/>
 > \>>> pip install -r requirements.txt<br/>
-> \>>> python kiauRequest.py username password
+> \>>> python kiauRequest.py username password<br />
 > out : ./CourseList.html
 
 # Overview
