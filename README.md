@@ -3,7 +3,8 @@
 > \>>> cd KiauHackPanelCrowler-<br/>
 > \>>> pip install -r requirements.txt<br/>
 > \>>> python kiauRequest.py username password<br />
-> out : Get New Session----> Done .<br />
+> out :<br />
+> Get New Session----> Done .<br />
 > Get courseTable----> Done .<br />
 > Get courses----> Done .<br />
 > Save File To: D:\project\project-Core\WebCrowler\Python\github\KiauHackPanelCrowler-\CourseList.html<br />
