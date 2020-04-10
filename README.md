@@ -3,7 +3,10 @@
 > \>>> cd KiauHackPanelCrowler-<br/>
 > \>>> pip install -r requirements.txt<br/>
 > \>>> python kiauRequest.py username password<br />
-> out : ./CourseList.html
+> out : Get New Session----> Done .
+> Get courseTable----> Done .
+> Get courses----> Done .
+> Save File To: D:\project\project-Core\WebCrowler\Python\github\KiauHackPanelCrowler-\CourseList.html
 
 # Overview
 <p> The project can help Azad University students receive their weekly schedule when they owe money to the university and their profile is limited.</p>
