@@ -7,7 +7,7 @@
 > Get New Session----> Done .<br />
 > Get courseTable----> Done .<br />
 > Get courses----> Done .<br />
-> Save File To: D:\project\project-Core\WebCrowler\Python\github\KiauHackPanelCrowler-\CourseList.html<br />
+> Save File To: {your location}\KiauHackPanelCrowler-\CourseList.html<br />
 
 # Overview
 <p> The project can help Azad University students receive their weekly schedule when they owe money to the university and their profile is limited.</p>
