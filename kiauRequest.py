@@ -3,6 +3,7 @@ from lxml import html
 import pandas as pd
 import webbrowser
 import requests
+import datetime
 import json
 import time
 import csv
@@ -77,29 +78,6 @@ def ocr_space_file(filename, overlay=False, api_key='55c76e3c7d88957', language=
                           files={filename: f},
                           data=payload,
                           )
-    return r.content.decode()
-
-    """ OCR.space API request with remote file.
-        Python3.5 - not tested on 2.7
-    :param url: Image url.
-    :param overlay: Is OCR.space overlay required in your response.
-                    Defaults to False.
-    :param api_key: OCR.space API key.
-                    Defaults to 'helloworld'.
-    :param language: Language code to be used in OCR.
-                    List of available language codes can be found on https://ocr.space/OCRAPI
-                    Defaults to 'en'.
-    :return: Result in JSON format.
-    """
-
-    payload = {'url': url,
-               'isOverlayRequired': overlay,
-               'apikey': api_key,
-               'language': language,
-               }
-    r = requests.post('https://api.ocr.space/parse/image',
-                      data=payload,
-                      )
     return r.content.decode()
 
 def GetValueById(object,element,id):
@@ -211,51 +189,60 @@ def parsTable(soup):
 
 def GetTable():
     global page, payload, payloadTable, cookies
-     
-    # check Exist Pandas Table
-    if os.path.exists("PandaDBCorces.csv"):
-        temp = pd.read_csv("PandaDBCorces.csv")
-        return temp.drop(columns = [temp.columns[0]])
+    
+    # check Exist Pandas Table time.ctime(os.path.getmtime(file)
+    if os.path.exists("PandaDBcourses.csv"):
+        # get date now and get file last modifid
+        now = (lambda d=datetime.datetime.now(): (d.day, d.month, d.year))()
+        lastModified = (lambda d=datetime.datetime.fromtimestamp(os.path.getmtime("PandaDBcourses.csv")): (d.day, d.month, d.year))()
+        
+        # check last modifid
+        if now == lastModified:
+            return (lambda temp=pd.read_csv("PandaDBcourses.csv") : temp.drop(columns = [temp.columns[0]]))()
+    
+    for i in range(2):
+        page = 1
 
-    # Temp Page List
-    lists = requests.post(url+"/list_ara.aspx",data=payload,cookies=cookies)
+        # Temp Page List
+        lists = requests.post(url+"/list_ara.aspx",data=payload,cookies=cookies)
 
-    # First Page List
-    SetPayloadList(lists,1)
-    payloadTable['ctl00$ScriptManager1'] = 'ctl00$UpdatePanel1|ctl00$ContentPlaceHolder1$btnSave4'
-    payloadTable.__setitem__('ctl00$ContentPlaceHolder1$btnSave4','جــســتجــوی دروس')
-    content = requests.post(url+"/list_ara.aspx",cookies=cookies,data=payloadTable)
-    payloadTable.__delitem__('ctl00$ContentPlaceHolder1$btnSave4')
-    page += 1
+        # First Page List
+        SetPayloadList(lists,1)
+        payloadTable['ctl00$ScriptManager1'] = 'ctl00$UpdatePanel1|ctl00$ContentPlaceHolder1$btnSave4'
+        payloadTable['ctl00$ContentPlaceHolder1$a1'] = 'RadioButton{}'.format(i+1)
+        payloadTable.__setitem__('ctl00$ContentPlaceHolder1$btnSave4','جــســتجــوی دروس')
+        content = requests.post(url+"/list_ara.aspx",cookies=cookies,data=payloadTable)
+        payloadTable.__delitem__('ctl00$ContentPlaceHolder1$btnSave4')
+        page += 1
 
-    # Parse Page Body
-    soup = BeautifulSoup(content.text, 'html.parser')
+        # Parse Page Body
+        soup = BeautifulSoup(content.text, 'html.parser')
 
-    # ParsTable
-    parsTable(soup)
+        # ParsTable
+        parsTable(soup)
 
-    # More Page
-    while(1):
-        try:
-            # set Payload and Post Request
-            SetPayloadList(content,page)
-            content = requests.post(url+"/list_ara.aspx",cookies=cookies,data=payloadTable)
-            
-            # Parse Page Body
-            soup = BeautifulSoup(content.text, 'html.parser')
-            
-            # ParsTable
-            parsTable(soup)
+        # More Page
+        while(1):
+            try:
+                # set Payload and Post Request
+                SetPayloadList(content,page)
+                content = requests.post(url+"/list_ara.aspx",cookies=cookies,data=payloadTable)
+                
+                # Parse Page Body
+                soup = BeautifulSoup(content.text, 'html.parser')
+                
+                # ParsTable
+                parsTable(soup)
 
-            # Parse Last Page Number
-            PageNumber = soup.find_all('tr',{"class": "pgr"})[0].find_all('td')[-1].text
-            
-            # Check Page Number
-            if(PageNumber != "..." and int(PageNumber) == page):
-                break
-            page += 1
-        except:
-            pass
+                # Parse Last Page Number
+                PageNumber = soup.find_all('tr',{"class": "pgr"})[0].find_all('td')[-1].text
+                
+                # Check Page Number
+                if(PageNumber != "..." and int(PageNumber) == page):
+                    break
+                page += 1
+            except:
+                pass
 
     SaveTable(table)
     return SetPandas(table)
@@ -284,7 +271,7 @@ def SetPandas(dataTable):
                     })
 
     # DataFrame To CSV
-    pdTable.to_csv("PandaDBCorces.csv", sep=",", encoding='utf-8')
+    pdTable.to_csv("PandaDBcourses.csv", sep=",", encoding='utf-8')
 
     return pdTable
 
@@ -340,19 +327,19 @@ def main():
     
     try:
         # Update Session
-        print('Get New Session---->')
+        print('Get New Session----> ', end='')
         GetNewSession()
-        print("\033[FGet New Session----> Done .")
+        print('Done .')
 
         # Get All Row DarsHayeErae Shode
-        print('Get courseTable---->')
+        print('Get courseTable----> ',end='')
         courseTable = GetTable()
-        print("\033[FGet courseTable----> Done .")
+        print('Done .')
 
         # Get ReportCard
-        print('Get courses---->')
+        print('Get courses----> ',end='')
         ReportCard = GetReportCard()
-        print("\033[FGet courses----> Done .")
+        print('Done .')
 
         # Convert data to Grid
         convetToHtmlGrid(ReportCard)

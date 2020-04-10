@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# my Files
+CourseList.html
+KiauTables.csv
+PandaDBcourses.csv
+yourcaptcha.png
+
