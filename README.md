@@ -24,7 +24,7 @@
 <p> Open terminal and run python kiauRequest.py username password.</p>
 <p> Export => CourseList.html <p>
 
-# sampel Export
+# sample Export
 <img src="http://s10.picofile.com/file/8393417626/Screenshot_2020_04_08_Screenshot.png"/>
 
 # License
